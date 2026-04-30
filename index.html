@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<meta name="theme-color" content="#6c63ff">
+<meta name="description" content="Income & Expense Tracker">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Finance">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<title>Finance Tracker</title>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0f0f1a;--bg2:#1a1a2e;--card:#1e1e35;--card2:#252540;--card3:#2a2a4a;--accent:#6c63ff;--income:#1D9E75;--expense:#E24B4A;--warn:#E07B20;--text:#f0f0ff;--text2:#a0a0c0;--text3:#606080;--border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.13);--radius:16px;--radius-sm:10px;}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+body{font-family:'Sarabun',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;max-width:480px;margin:0 auto;padding-bottom:80px;font-size:15px;}
+/* Header */
+.header{background:var(--bg2);padding:44px 18px 14px;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100;}
+.header-top{display:flex;justify-content:space-between;align-items:center;gap:8px;}
+.app-title{font-size:18px;font-weight:700;color:var(--text);}
+.top-controls{display:flex;gap:6px;align-items:center;}
+.ctrl-sel{background:var(--card2);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:5px 8px;color:var(--text);font-family:'Sarabun',sans-serif;font-size:12px;font-weight:600;outline:none;cursor:pointer;}
+.lang-btn{background:var(--card2);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:5px 10px;color:var(--text);font-family:'Sarabun',sans-serif;font-size:12px;font-weight:700;cursor:pointer;}
+.month-nav{display:flex;align-items:center;gap:8px;margin-top:12px;}
+.month-nav button{background:var(--card2);border:1px solid var(--border2);border-radius:8px;color:var(--text2);cursor:pointer;padding:4px 12px;font-size:16px;}
+.month-lbl{font-size:14px;font-weight:600;flex:1;text-align:center;}
+/* Bottom Nav */
+.bottom-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;background:var(--bg2);border-top:1px solid var(--border2);display:flex;z-index:200;padding-bottom:env(safe-area-inset-bottom,0);}
+.nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;padding:8px 0 6px;background:none;border:none;cursor:pointer;color:var(--text3);font-family:'Sarabun',sans-serif;font-size:10px;gap:3px;transition:color 0.2s;}
+.nav-btn.active{color:var(--accent);}
+.nav-btn svg{width:20px;height:20px;}
+.nav-add{width:48px;height:48px;border-radius:50%;background:var(--accent);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;margin-top:-20px;box-shadow:0 4px 20px rgba(108,99,255,0.5);transition:transform 0.15s;}
+.nav-add:active{transform:scale(0.92);}
+.nav-add svg{width:22px;height:22px;color:#fff;}
+/* Pages */
+.page{display:none;padding:14px 16px 0;}
+.page.active{display:block;}
+/* Summary */
+.sum-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px;}
+.sum-card{background:var(--card);border-radius:var(--radius-sm);padding:12px 8px;text-align:center;border:1px solid var(--border);}
+.sum-lbl{font-size:11px;color:var(--text2);margin-bottom:3px;}
+.sum-val{font-size:15px;font-weight:700;letter-spacing:-0.5px;}
+.c-inc{color:var(--income);}.c-exp{color:var(--expense);}.c-acc{color:var(--accent);}
+/* Cards */
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;margin-bottom:12px;}
+.card-lbl{font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:12px;}
+.bar-row{display:flex;flex-direction:column;gap:4px;margin-bottom:10px;}
+.bar-top{display:flex;justify-content:space-between;}
+.bar-name{font-size:13px;color:var(--text);}
+.bar-amt{font-size:12px;color:var(--text2);}
+.bar-track{height:5px;background:rgba(255,255,255,0.07);border-radius:3px;overflow:hidden;margin-top:3px;}
+.bar-fill{height:100%;border-radius:3px;transition:width 0.4s;}
+.chart-wrap{height:160px;position:relative;margin-top:6px;}
+/* Form */
+.type-toggle{display:grid;grid-template-columns:1fr 1fr;gap:3px;background:var(--card2);border-radius:var(--radius-sm);padding:3px;margin-bottom:14px;border:1px solid var(--border2);}
+.type-btn{padding:9px;border:none;border-radius:8px;cursor:pointer;font-family:'Sarabun',sans-serif;font-size:13px;font-weight:600;background:none;color:var(--text2);transition:all 0.2s;}
+.type-btn.t-exp{background:var(--expense);color:#fff;}
+.type-btn.t-inc{background:var(--income);color:#fff;}
+.fg{display:flex;flex-direction:column;gap:5px;margin-bottom:12px;}
+.fg label{font-size:12px;color:var(--text2);}
+.fg input,.fg select{background:var(--card2);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:12px 13px;color:var(--text);font-family:'Sarabun',sans-serif;font-size:15px;width:100%;outline:none;}
+.fg input:focus,.fg select:focus{border-color:var(--accent);}
+.fg input::placeholder{color:var(--text3);}
+.form-row2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;}
+.cat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;}
+.cat-chip{display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 4px;border-radius:var(--radius-sm);border:1px solid var(--border2);background:var(--card2);cursor:pointer;font-size:10px;color:var(--text2);transition:all 0.15s;}
+.cat-chip .ci{font-size:18px;}
+.cat-chip.sel-e{border-color:var(--expense);background:rgba(226,75,74,0.1);color:var(--expense);}
+.cat-chip.sel-i{border-color:var(--income);background:rgba(29,158,117,0.1);color:var(--income);}
+.btn-sub{width:100%;padding:14px;border:none;border-radius:var(--radius-sm);font-family:'Sarabun',sans-serif;font-size:15px;font-weight:700;cursor:pointer;margin-top:4px;}
+.btn-exp-s{background:var(--expense);color:#fff;}
+.btn-inc-s{background:var(--income);color:#fff;}
+/* History */
+.hist-tabs{display:flex;gap:3px;background:var(--card2);border-radius:var(--radius-sm);padding:3px;margin-bottom:12px;border:1px solid var(--border2);}
+.htab{flex:1;padding:7px;border:none;border-radius:8px;cursor:pointer;font-family:'Sarabun',sans-serif;font-size:12px;font-weight:500;background:none;color:var(--text3);}
+.htab.active{background:var(--card3);color:var(--text);}
+.day-hdr{display:flex;justify-content:space-between;padding:5px 2px;margin-top:8px;}
+.rec-item{display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--border);border-radius:var(--radius-sm);padding:11px 12px;margin-bottom:6px;animation:fi 0.2s ease;}
+@keyframes fi{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+.rec-icon{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0;}
+.rec-info{flex:1;min-width:0;}
+.rec-name{font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.rec-meta{font-size:11px;color:var(--text3);margin-top:2px;}
+.rec-r{display:flex;flex-direction:column;align-items:flex-end;gap:2px;flex-shrink:0;}
+.rec-amt{font-size:14px;font-weight:700;}
+.rec-time{font-size:10px;color:var(--text3);background:rgba(255,255,255,0.05);padding:1px 5px;border-radius:3px;}
+.rec-del{background:none;border:none;color:var(--text3);cursor:pointer;padding:3px;font-size:13px;opacity:0.4;}
+.rec-del:hover{opacity:1;color:var(--expense);}
+/* Daily Plan */
+.legend-row{display:flex;gap:10px;margin-bottom:10px;flex-wrap:wrap;}
+.legend-item{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text2);}
+.legend-dot{width:8px;height:8px;border-radius:50%;}
+.dow-row{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:4px;text-align:center;}
+.dow-lbl{font-size:10px;color:var(--text3);padding:2px 0;}
+.plan-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:10px;}
+.plan-day{border-radius:7px;padding:5px 2px 4px;text-align:center;cursor:pointer;border:1px solid var(--border);background:var(--card2);min-height:54px;}
+.plan-day.today{border-color:var(--accent) !important;background:rgba(108,99,255,0.1);}
+.pd-num{font-size:12px;font-weight:600;color:var(--text);}
+.pd-dot{width:5px;height:5px;border-radius:50%;margin:2px auto;}
+.pd-amt{font-size:9px;margin-top:1px;font-weight:600;}
+.day-ok{border-color:#1D9E75 !important;background:rgba(29,158,117,0.08);}
+.day-warn{border-color:#E07B20 !important;background:rgba(224,123,32,0.08);}
+.day-over{border-color:#E24B4A !important;background:rgba(226,75,74,0.08);}
+.plan-detail{background:var(--card2);border-radius:var(--radius-sm);padding:12px;margin-bottom:10px;border:1px solid var(--border);}
+.plan-sum-row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);font-size:13px;}
+.plan-sum-row:last-child{border-bottom:none;}
+/* Export */
+.btn-ex{width:100%;padding:12px;border-radius:var(--radius-sm);font-family:'Sarabun',sans-serif;font-size:13px;font-weight:600;cursor:pointer;margin-bottom:8px;background:none;transition:all 0.15s;}
+.btn-csv{border:1px solid var(--income);color:var(--income);}
+.btn-csv:hover{background:var(--income);color:#0f0f1a;}
+.btn-gs{border:1px solid #4285F4;color:#4285F4;}
+.btn-gs:hover{background:#4285F4;color:#fff;}
+.code-block{font-size:10px;color:var(--income);word-break:break-all;display:block;margin-top:6px;font-family:monospace;background:var(--card2);padding:8px;border-radius:6px;line-height:1.5;}
+.toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--income);color:#0f0f1a;padding:11px 22px;border-radius:30px;font-size:14px;font-weight:700;opacity:0;transition:all 0.3s;z-index:999;pointer-events:none;white-space:nowrap;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+.toast.err{background:var(--expense);color:#fff;}
+.empty{text-align:center;padding:28px;color:var(--text3);font-size:13px;}
+input[type="date"]::-webkit-calendar-picker-indicator,input[type="time"]::-webkit-calendar-picker-indicator{filter:invert(1) opacity(0.5);}
+select option{background:#1e1e35;}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-top">
+    <div class="app-title" id="appTitle">💰 รายรับ-รายจ่าย</div>
+    <div class="top-controls">
+      <select class="ctrl-sel" id="curSel" onchange="changeCur()">
+        <option value="THB">🇹🇭 ฿ บาท</option>
+        <option value="LAK">🇱🇦 ₭ กีบ</option>
+        <option value="CNY">🇨🇳 ¥ หยวน</option>
+        <option value="USD">🇺🇸 $ USD</option>
+        <option value="EUR">🇪🇺 € EUR</option>
+        <option value="GBP">🇬🇧 £ GBP</option>
+        <option value="JPY">🇯🇵 ¥ JPY</option>
+        <option value="SGD">🇸🇬 S$</option>
+      </select>
+      <button class="lang-btn" id="langBtn" onclick="toggleLang()">EN</button>
+    </div>
+  </div>
+  <div class="month-nav">
+    <button onclick="prevMo()">‹</button>
+    <div class="month-lbl" id="moLbl"></div>
+    <button onclick="nextMo()">›</button>
+  </div>
+</div>
+
+<!-- Pages -->
+<div id="pg-dash" class="page active">
+  <div style="height:12px"></div>
+  <div class="sum-grid" id="sumGrid"></div>
+  <div class="card"><div class="card-lbl" id="lblCat"></div><div id="catBars"></div></div>
+  <div class="card"><div class="card-lbl" id="lbl6mo"></div><div class="chart-wrap"><canvas id="chart"></canvas></div></div>
+</div>
+
+<div id="pg-add" class="page">
+  <div style="height:12px"></div>
+  <div class="type-toggle">
+    <button class="type-btn t-exp" id="btnExp" onclick="setType('expense')">− รายจ่าย</button>
+    <button class="type-btn" id="btnInc" onclick="setType('income')">+ รายรับ</button>
+  </div>
+  <div class="fg"><label id="lblDesc">รายการ</label><input id="fdesc" type="text" placeholder="เช่น เงินเดือน, ข้าวเที่ยง..."></div>
+  <div class="fg"><label id="lblAmt">จำนวนเงิน</label><input id="famt" type="number" inputmode="decimal" placeholder="0.00" min="0" step="any"></div>
+  <div class="fg"><label id="catLbl">หมวดหมู่</label><div class="cat-grid" id="catGrid"></div></div>
+  <div class="form-row2">
+    <div class="fg" style="margin-bottom:0"><label id="lblDate">วันที่</label><input id="fdate" type="date"></div>
+    <div class="fg" style="margin-bottom:0"><label id="lblTime">เวลา</label><input id="ftime" type="time"></div>
+  </div>
+  <div style="height:10px"></div>
+  <div class="fg"><label id="lblNote">หมายเหตุ</label><input id="fnote" type="text" placeholder="เพิ่มเติม..."></div>
+  <button class="btn-sub btn-exp-s" id="submitBtn" onclick="addRec()">บันทึกรายจ่าย</button>
+</div>
+
+<div id="pg-hist" class="page">
+  <div style="height:12px"></div>
+  <div class="hist-tabs">
+    <button class="htab active" id="htAll" onclick="setHTab('all')">ทั้งหมด</button>
+    <button class="htab" id="htIncome" onclick="setHTab('income')">รายรับ</button>
+    <button class="htab" id="htExpense" onclick="setHTab('expense')">รายจ่าย</button>
+  </div>
+  <div id="histList"></div>
+</div>
+
+<div id="pg-plan" class="page">
+  <div style="height:12px"></div>
+  <div class="card">
+    <div class="card-lbl" id="lblDailyTitle">ตั้งงบประมาณรายวัน</div>
+    <div class="fg"><label id="lblDailyInput">งบต่อวัน</label><input id="dailyBudget" type="number" placeholder="0" min="0" oninput="sv();renderPlanGrid()"></div>
+  </div>
+  <div class="card">
+    <div class="card-lbl" id="planMonthLbl"></div>
+    <div class="legend-row">
+      <div class="legend-item"><div class="legend-dot" style="background:#1D9E75"></div><span id="lgOk">ไม่เกินงบ</span></div>
+      <div class="legend-item"><div class="legend-dot" style="background:#E07B20"></div><span id="lgWarn">ใกล้จะเกิน</span></div>
+      <div class="legend-item"><div class="legend-dot" style="background:#E24B4A"></div><span id="lgOver">เกินงบ</span></div>
+    </div>
+    <div class="dow-row" id="dowRow"></div>
+    <div class="plan-grid" id="planGrid"></div>
+    <div id="planDetail"></div>
+  </div>
+  <div class="card"><div class="card-lbl" id="lblPlanSum">สรุปเดือนนี้</div><div id="planSummary"></div></div>
+</div>
+
+<div id="pg-export" class="page">
+  <div style="height:12px"></div>
+  <div class="card">
+    <div class="card-lbl" id="lblExport">Export ข้อมูล</div>
+    <button class="btn-ex btn-csv" id="btnCSV" onclick="doCSV()">⬇ Export CSV</button>
+  </div>
+  <div class="card">
+    <div class="card-lbl" id="lblSheets">🔗 ส่งไป Google Sheets</div>
+    <p style="font-size:12px;color:var(--text2);margin-bottom:10px;line-height:1.6" id="lblSheetsDesc">ใส่ URL จาก Google Apps Script แล้วกดส่ง</p>
+    <div class="fg"><label id="lblSheetsURL">Apps Script URL</label><input id="shURL" type="url" placeholder="https://script.google.com/macros/s/.../exec"></div>
+    <button class="btn-ex btn-gs" id="btnSend" onclick="sendSheets()" style="margin-bottom:4px">📤 ส่งข้อมูล</button>
+    <div style="background:var(--card2);border-radius:var(--radius-sm);padding:10px;margin-top:6px;">
+      <div style="font-size:11px;color:var(--text2);margin-bottom:4px;font-weight:600" id="lblSheetsHow">วิธีตั้งค่า: Extensions → Apps Script → วางโค้ด → Deploy → Web App</div>
+      <code class="code-block">function doPost(e){var ss=SpreadsheetApp.getActiveSpreadsheet();var sh=ss.getSheetByName("Data")||ss.insertSheet("Data");var d=JSON.parse(e.postData.contents);if(sh.getLastRow()===0)sh.appendRow(["Date","Time","Type","Item","Category","Amount","Currency","Note"]);d.forEach(function(r){sh.appendRow([r.date,r.time,r.type,r.desc,r.cat,r.amount,r.cur,r.note])});return ContentService.createTextOutput("OK");}</code>
+    </div>
+  </div>
+</div>
+
+<!-- Bottom Nav -->
+<nav class="bottom-nav">
+  <button class="nav-btn active" id="nav-dash" onclick="goPage('dash')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+    <span id="nav-dash-lbl">ภาพรวม</span>
+  </button>
+  <button class="nav-btn" id="nav-hist" onclick="goPage('hist')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 8v4l3 3"/><circle cx="12" cy="12" r="9"/></svg>
+    <span id="nav-hist-lbl">ประวัติ</span>
+  </button>
+  <button class="nav-add" onclick="goPage('add')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+  </button>
+  <button class="nav-btn" id="nav-plan" onclick="goPage('plan')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+    <span id="nav-plan-lbl">แผนวัน</span>
+  </button>
+  <button class="nav-btn" id="nav-export" onclick="goPage('export')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+    <span id="nav-export-lbl">Export</span>
+  </button>
+</nav>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+// ── Language ─────────────────────────────────────────
+let lang='TH';
+const LANG_CYCLE=['TH','EN','LAO'];
+const L={
+  TH:{appTitle:'💰 รายรับ-รายจ่าย',navDash:'ภาพรวม',navHist:'ประวัติ',navPlan:'แผนวัน',navExport:'Export',btnExp:'− รายจ่าย',btnInc:'+ รายรับ',lblDesc:'รายการ',descPh:'เช่น เงินเดือน, ข้าวเที่ยง...',lblAmt:'จำนวนเงิน',lblDate:'วันที่',lblTime:'เวลา',lblNote:'หมายเหตุ',notePh:'เพิ่มเติม...',catExp:'หมวดหมู่รายจ่าย',catInc:'หมวดหมู่รายรับ',saveExp:'บันทึกรายจ่าย',saveInc:'บันทึกรายรับ',htAll:'ทั้งหมด',htInc:'รายรับ',htExp:'รายจ่าย',sInc:'รายรับ',sExp:'รายจ่าย',sBal:'คงเหลือ',lblCat:'รายจ่ายตามหมวดหมู่',lbl6mo:'แนวโน้ม 6 เดือน',lblDailyTitle:'ตั้งงบรายวัน',lblDailyInput:'งบต่อวัน',lgOk:'ไม่เกินงบ',lgWarn:'ใกล้จะเกิน (>70%)',lgOver:'เกินงบ',lblPlanSum:'สรุปเดือนนี้',planTotal:'รายจ่ายรวม',planAvg:'เฉลี่ยต่อวัน',planOver:'วันที่เกินงบ',planRemain:'งบที่เหลือ',lblExport:'Export ข้อมูล',btnCSV:'⬇ Export CSV',lblSheets:'🔗 ส่งไป Google Sheets',lblSheetsDesc:'ใส่ URL จาก Google Apps Script แล้วกดส่ง',lblSheetsURL:'Apps Script URL',btnSend:'📤 ส่งข้อมูล',lblSheetsHow:'วิธีตั้งค่า: Extensions → Apps Script → วางโค้ด → Deploy → Web App',toastSavExp:'✓ บันทึกรายจ่ายแล้ว',toastSavInc:'✓ บันทึกรายรับแล้ว',toastDel:'ลบแล้ว',toastCSV:'⬇ Export CSV สำเร็จ',toastSending:'กำลังส่ง...',toastSent:'✓ ส่งไป Google Sheets แล้ว',toastSentErr:'ส่งไม่สำเร็จ ตรวจสอบ URL',errDesc:'กรุณากรอกรายการ',errAmt:'กรุณากรอกจำนวนเงิน',errURL:'กรุณาใส่ URL',errNoData:'ไม่มีข้อมูล',delQ:'ลบรายการนี้?',noRec:'ไม่พบรายการ',noCat:'ยังไม่มีรายจ่าย',dayBud:'งบวันนี้',daySpent:'ใช้ไป',dayRemain:'เหลือ',dayOver:'เกิน',days:'วัน',langBtn:'EN',months:['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'],monthsS:['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'],dow:['อา','จ','อ','พ','พฤ','ศ','ส']},
+  EN:{appTitle:'💰 Finance Tracker',navDash:'Overview',navHist:'History',navPlan:'Daily',navExport:'Export',btnExp:'− Expense',btnInc:'+ Income',lblDesc:'Description',descPh:'e.g. Salary, Lunch...',lblAmt:'Amount',lblDate:'Date',lblTime:'Time',lblNote:'Note',notePh:'Additional info...',catExp:'Expense Category',catInc:'Income Category',saveExp:'Save Expense',saveInc:'Save Income',htAll:'All',htInc:'Income',htExp:'Expense',sInc:'Income',sExp:'Expense',sBal:'Balance',lblCat:'Expense by Category',lbl6mo:'6-Month Trend',lblDailyTitle:'Set Daily Budget',lblDailyInput:'Budget per day',lgOk:'Under budget',lgWarn:'Near limit (>70%)',lgOver:'Over budget',lblPlanSum:'Monthly Summary',planTotal:'Total Spent',planAvg:'Daily Average',planOver:'Days Over Budget',planRemain:'Remaining Budget',lblExport:'Export Data',btnCSV:'⬇ Export CSV',lblSheets:'🔗 Send to Google Sheets',lblSheetsDesc:'Enter your Google Apps Script URL and click Send.',lblSheetsURL:'Apps Script URL',btnSend:'📤 Send Data',lblSheetsHow:'Setup: Extensions → Apps Script → Paste code → Deploy → Web App',toastSavExp:'✓ Expense saved',toastSavInc:'✓ Income saved',toastDel:'Deleted',toastCSV:'⬇ CSV exported',toastSending:'Sending...',toastSent:'✓ Sent to Google Sheets',toastSentErr:'Failed. Check your URL.',errDesc:'Please enter description',errAmt:'Please enter amount',errURL:'Please enter URL',errNoData:'No data',delQ:'Delete this record?',noRec:'No records',noCat:'No expenses yet',dayBud:"Today's budget",daySpent:'Spent',dayRemain:'Remaining',dayOver:'Over',days:'days',langBtn:'ລາວ',months:['January','February','March','April','May','June','July','August','September','October','November','December'],monthsS:['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],dow:['Su','Mo','Tu','We','Th','Fr','Sa']},
+  LAO:{appTitle:'💰 ລາຍຮັບ-ລາຍຈ່າຍ',navDash:'ພາບລວມ',navHist:'ປະຫວັດ',navPlan:'ແຜນວັນ',navExport:'Export',btnExp:'− ລາຍຈ່າຍ',btnInc:'+ ລາຍຮັບ',lblDesc:'ລາຍການ',descPh:'ເຊັ່ນ ເງິນເດືອນ...',lblAmt:'ຈຳນວນເງິນ',lblDate:'ວັນທີ',lblTime:'ເວລາ',lblNote:'ໝາຍເຫດ',notePh:'ເພີ່ມເຕີມ...',catExp:'ໝວດໝູ່ລາຍຈ່າຍ',catInc:'ໝວດໝູ່ລາຍຮັບ',saveExp:'ບັນທຶກລາຍຈ່າຍ',saveInc:'ບັນທຶກລາຍຮັບ',htAll:'ທັງໝົດ',htInc:'ລາຍຮັບ',htExp:'ລາຍຈ່າຍ',sInc:'ລາຍຮັບ',sExp:'ລາຍຈ່າຍ',sBal:'ຍອດຄົງເຫຼືອ',lblCat:'ລາຍຈ່າຍຕາມໝວດ',lbl6mo:'ແນວໂນ້ມ 6 ເດືອນ',lblDailyTitle:'ຕັ້ງງົບລາຍວັນ',lblDailyInput:'ງົບຕໍ່ວັນ',lgOk:'ບໍ່ເກີນງົບ',lgWarn:'ໃກ້ຈະເກີນ (>70%)',lgOver:'ເກີນງົບ',lblPlanSum:'ສະຫຼຸບເດືອນນີ້',planTotal:'ລາຍຈ່າຍລວມ',planAvg:'ສະເລ່ຍຕໍ່ວັນ',planOver:'ວັນທີ່ເກີນງົບ',planRemain:'ງົບທີ່ເຫຼືອ',lblExport:'Export ຂໍ້ມູນ',btnCSV:'⬇ Export CSV',lblSheets:'🔗 ສົ່ງໄປ Google Sheets',lblSheetsDesc:'ໃສ່ URL ຈາກ Apps Script ແລ້ວກົດສົ່ງ',lblSheetsURL:'Apps Script URL',btnSend:'📤 ສົ່ງຂໍ້ມູນ',lblSheetsHow:'ວິທີ: Extensions → Apps Script → ວາງໂຄດ → Deploy → Web App',toastSavExp:'✓ ບັນທຶກລາຍຈ່າຍແລ້ວ',toastSavInc:'✓ ບັນທຶກລາຍຮັບແລ້ວ',toastDel:'ລຶບແລ້ວ',toastCSV:'⬇ Export CSV ສຳເລັດ',toastSending:'ກຳລັງສົ່ງ...',toastSent:'✓ ສົ່ງໄປ Sheets ແລ້ວ',toastSentErr:'ສົ່ງບໍ່ສຳເລັດ',errDesc:'ກະລຸນາກອກລາຍການ',errAmt:'ກະລຸນາກອກຈຳນວນ',errURL:'ກະລຸນາໃສ່ URL',errNoData:'ບໍ່ມີຂໍ້ມູນ',delQ:'ລຶບລາຍການນີ້?',noRec:'ບໍ່ພົບລາຍການ',noCat:'ຍັງບໍ່ມີລາຍຈ່າຍ',dayBud:'ງົບວັນນີ້',daySpent:'ໃຊ້ໄປ',dayRemain:'ເຫຼືອ',dayOver:'ເກີນ',days:'ວັນ',langBtn:'ไทย',months:['ມັງກອນ','ກຸມພາ','ມີນາ','ເມສາ','ພຶດສະພາ','ມິຖຸນາ','ກໍລະກົດ','ສິງຫາ','ກັນຍາ','ຕຸລາ','ພະຈິກ','ທັນວາ'],monthsS:['ມ.ກ.','ກ.ພ.','ມ.ນ.','ມ.ສ.','ພ.ພ.','ມ.ຖ.','ກ.ກ.','ສ.ຫ.','ກ.ຍ.','ຕ.ລ.','ພ.ຈ.','ທ.ວ.'],dow:['ອາ','ຈ','ອ','ພ','ພຫ','ສ','ເສ']}
+};
+function t(k){return L[lang][k]??k;}
+function toggleLang(){lang=LANG_CYCLE[(LANG_CYCLE.indexOf(lang)+1)%3];sv();applyLang();const p=document.querySelector('.page.active')?.id?.replace('pg-','');if(p==='dash')renderDash();if(p==='hist')renderHist();if(p==='plan')renderPlan();if(p==='add')applyFormLang();}
+function si(id,txt){const e=document.getElementById(id);if(e)e.textContent=txt;}
+function applyLang(){
+  si('appTitle',t('appTitle'));si('langBtn',t('langBtn'));
+  si('nav-dash-lbl',t('navDash'));si('nav-hist-lbl',t('navHist'));si('nav-plan-lbl',t('navPlan'));si('nav-export-lbl',t('navExport'));
+  si('htAll',t('htAll'));si('htIncome',t('htInc'));si('htExpense',t('htExp'));
+  si('lgOk',t('lgOk'));si('lgWarn',t('lgWarn'));si('lgOver',t('lgOver'));
+  si('lblCat',t('lblCat'));si('lbl6mo',t('lbl6mo'));
+  si('lblDailyTitle',t('lblDailyTitle'));si('lblDailyInput',t('lblDailyInput')+' ('+sym()+')');
+  si('lblPlanSum',t('lblPlanSum'));si('lblExport',t('lblExport'));si('btnCSV',t('btnCSV'));
+  si('lblSheets',t('lblSheets'));si('lblSheetsDesc',t('lblSheetsDesc'));si('lblSheetsURL',t('lblSheetsURL'));si('btnSend',t('btnSend'));si('lblSheetsHow',t('lblSheetsHow'));
+  updMo();applyFormLang();
+}
+function applyFormLang(){
+  si('lblDesc',t('lblDesc'));const fd=document.getElementById('fdesc');if(fd)fd.placeholder=t('descPh');
+  si('lblAmt',t('lblAmt')+' ('+sym()+')');si('lblDate',t('lblDate'));si('lblTime',t('lblTime'));
+  si('lblNote',t('lblNote'));const fn=document.getElementById('fnote');if(fn)fn.placeholder=t('notePh');
+  si('btnExp',t('btnExp'));si('btnInc',t('btnInc'));
+  si('catLbl',curType==='income'?t('catInc'):t('catExp'));
+  si('submitBtn',curType==='income'?t('saveInc'):t('saveExp'));
+}
+
+// ── Categories ────────────────────────────────────────
+const EC=[{k:'อาหาร',ke:'Food',kl:'ອາຫານ',i:'🍜',c:'#6c63ff'},{k:'เดินทาง',ke:'Transport',kl:'ການເດີນທາງ',i:'🚌',c:'#1D9E75'},{k:'ช้อปปิ้ง',ke:'Shopping',kl:'ຊ໋ອບປິ້ງ',i:'🛍',c:'#E24B4A'},{k:'ค่าบ้าน',ke:'Housing',kl:'ຄ່າເຮືອນ',i:'🏠',c:'#BA7517'},{k:'สุขภาพ',ke:'Health',kl:'ສຸຂະພາບ',i:'💊',c:'#378ADD'},{k:'บันเทิง',ke:'Fun',kl:'ສັນທະນາ',i:'🎬',c:'#D85A30'},{k:'ออมทรัพย์',ke:'Savings',kl:'ເງິນຝາກ',i:'🏦',c:'#1D9E75'},{k:'อื่นๆ',ke:'Other',kl:'ອື່ນໆ',i:'📌',c:'#888'}];
+const IC=[{k:'เงินเดือน',ke:'Salary',kl:'ເງິນເດືອນ',i:'💼',c:'#1D9E75'},{k:'ค่าจ้าง',ke:'Wages',kl:'ຄ່າຈ້າງ',i:'🛠',c:'#43e97b'},{k:'โบนัส',ke:'Bonus',kl:'ໂບນັດ',i:'🎁',c:'#BA7517'},{k:'ลงทุน',ke:'Investment',kl:'ການລົງທຶນ',i:'📈',c:'#378ADD'},{k:'ขายของ',ke:'Sales',kl:'ຂາຍຂອງ',i:'🏪',c:'#D85A30'},{k:'อื่นๆ',ke:'Other',kl:'ອື່ນໆ',i:'💵',c:'#888'}];
+const CURRENCIES={THB:{s:'฿'},LAK:{s:'₭'},CNY:{s:'¥'},USD:{s:'$'},EUR:{s:'€'},GBP:{s:'£'},JPY:{s:'¥'},SGD:{s:'S$'}};
+function catLabel(c){return lang==='EN'?c.ke:lang==='LAO'?c.kl:c.k;}
+function getCat(k,tp){return(tp==='income'?IC:EC).find(c=>c.k===k)||{k,ke:k,kl:k,i:'📌',c:'#888'};}
+
+// ── State ─────────────────────────────────────────────
+let recs=[],cur='THB',curType='expense',selCat='อาหาร',htab='all',chartI=null,viewDate=new Date();
+
+// IndexedDB + localStorage
+let DB=null;
+function openDB(){return new Promise(r=>{if(DB)return r(DB);try{const q=indexedDB.open('fin4',1);q.onupgradeneeded=e=>{const d=e.target.result;if(!d.objectStoreNames.contains('kv'))d.createObjectStore('kv');};q.onsuccess=e=>{DB=e.target.result;r(DB);};q.onerror=()=>r(null);}catch(e){r(null);}});}
+async function dbGet(k){try{const db=await openDB();if(!db)return localStorage.getItem(k);return new Promise(r=>{const tx=db.transaction('kv','readonly');const q=tx.objectStore('kv').get(k);q.onsuccess=()=>r(q.result??localStorage.getItem(k));q.onerror=()=>r(localStorage.getItem(k));});}catch(e){return localStorage.getItem(k);}}
+async function dbSet(k,v){try{localStorage.setItem(k,v);}catch(e){}try{const db=await openDB();if(!db)return;return new Promise(r=>{const tx=db.transaction('kv','readwrite');tx.objectStore('kv').put(v,k);tx.oncomplete=r;tx.onerror=r;});}catch(e){}}
+async function sv(){await Promise.all([dbSet('r4',JSON.stringify(recs)),dbSet('c4',cur),dbSet('l4',lang),dbSet('db4',document.getElementById('dailyBudget')?.value||'')]);}
+async function loadData(){
+  try{const r=await dbGet('r4');if(r)recs=JSON.parse(r);}catch(e){}
+  try{const c=await dbGet('c4');if(c)cur=c;}catch(e){}
+  try{const l=await dbGet('l4');if(l&&LANG_CYCLE.includes(l))lang=l;}catch(e){}
+  try{const d=await dbGet('db4');if(d){const el=document.getElementById('dailyBudget');if(el)el.value=d;}}catch(e){}
+}
+
+function sym(){return CURRENCIES[cur]?.s||'฿';}
+function today(){return new Date().toISOString().split('T')[0];}
+function nowt(){const d=new Date();return d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0');}
+function viewMo(){return viewDate.toISOString().substring(0,7);}
+function fmt(n){if(isNaN(n))return sym()+'0';const s=Math.abs(n);return sym()+(cur==='JPY'||cur==='LAK'?Math.round(s).toLocaleString():s.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,','));}
+function toast(msg,err=false){const el=document.getElementById('toast');el.textContent=msg;el.className='toast show'+(err?' err':'');setTimeout(()=>el.classList.remove('show'),2400);}
+
+const PAGES=['dash','hist','plan','export'];
+function goPage(p){
+  document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
+  document.getElementById('pg-'+p).classList.add('active');
+  PAGES.forEach(x=>{const b=document.getElementById('nav-'+x);if(b)b.classList.toggle('active',x===p);});
+  if(p==='dash')renderDash();if(p==='hist')renderHist();if(p==='plan')renderPlan();if(p==='add'){initForm();applyFormLang();}
+}
+function prevMo(){viewDate=new Date(viewDate.getFullYear(),viewDate.getMonth()-1,1);updMo();const p=document.querySelector('.page.active')?.id?.replace('pg-','');if(p==='dash')renderDash();if(p==='hist')renderHist();if(p==='plan')renderPlan();}
+function nextMo(){viewDate=new Date(viewDate.getFullYear(),viewDate.getMonth()+1,1);updMo();const p=document.querySelector('.page.active')?.id?.replace('pg-','');if(p==='dash')renderDash();if(p==='hist')renderHist();if(p==='plan')renderPlan();}
+function updMo(){si('moLbl',t('months')[viewDate.getMonth()]+' '+viewDate.getFullYear());}
+function changeCur(){cur=document.getElementById('curSel').value;sv();renderDash();applyFormLang();}
+
+function setType(tp){
+  curType=tp;const cats=tp==='income'?IC:EC;selCat=cats[0].k;
+  document.getElementById('btnExp').className='type-btn'+(tp==='expense'?' t-exp':'');
+  document.getElementById('btnInc').className='type-btn'+(tp==='income'?' t-inc':'');
+  si('catLbl',tp==='income'?t('catInc'):t('catExp'));
+  si('submitBtn',tp==='income'?t('saveInc'):t('saveExp'));
+  document.getElementById('submitBtn').className='btn-sub '+(tp==='income'?'btn-inc-s':'btn-exp-s');
+  buildCatGrid();
+}
+function buildCatGrid(){
+  const cats=curType==='income'?IC:EC;
+  document.getElementById('catGrid').innerHTML=cats.map(c=>`<div class="cat-chip${c.k===selCat?(curType==='income'?' sel-i':' sel-e'):''}" onclick="selCat='${c.k}';buildCatGrid()"><span class="ci">${c.i}</span><span>${catLabel(c)}</span></div>`).join('');
+}
+function initForm(){['fdesc','famt','fnote'].forEach(id=>document.getElementById(id).value='');document.getElementById('fdate').value=today();document.getElementById('ftime').value=nowt();document.getElementById('curSel').value=cur;setType('expense');}
+function addRec(){
+  const desc=document.getElementById('fdesc').value.trim();
+  const amt=parseFloat(document.getElementById('famt').value);
+  const date=document.getElementById('fdate').value;
+  const time=document.getElementById('ftime').value;
+  const note=document.getElementById('fnote').value.trim();
+  if(!desc){toast(t('errDesc'),true);return;}
+  if(!amt||amt<=0){toast(t('errAmt'),true);return;}
+  recs.unshift({id:Date.now(),type:curType,desc,amount:amt,cat:selCat,date,time,note,cur});
+  sv();toast(curType==='income'?t('toastSavInc'):t('toastSavExp'));initForm();goPage('dash');
+}
+function delRec(id){if(!confirm(t('delQ')))return;recs=recs.filter(r=>r.id!==id);sv();renderHist();renderDash();toast(t('toastDel'));}
+
+function renderDash(){
+  updMo();si('lblCat',t('lblCat'));si('lbl6mo',t('lbl6mo'));
+  const mo=viewMo(),mr=recs.filter(r=>r.date.startsWith(mo)&&r.cur===cur);
+  const inc=mr.filter(r=>r.type==='income').reduce((s,r)=>s+r.amount,0);
+  const exp=mr.filter(r=>r.type==='expense').reduce((s,r)=>s+r.amount,0);
+  document.getElementById('sumGrid').innerHTML=`<div class="sum-card"><div class="sum-lbl">${t('sInc')}</div><div class="sum-val c-inc">${fmt(inc)}</div></div><div class="sum-card"><div class="sum-lbl">${t('sExp')}</div><div class="sum-val c-exp">${fmt(exp)}</div></div><div class="sum-card"><div class="sum-lbl">${t('sBal')}</div><div class="sum-val c-acc">${fmt(inc-exp)}</div></div>`;
+  const catT={};mr.filter(r=>r.type==='expense').forEach(r=>{catT[r.cat]=(catT[r.cat]||0)+r.amount;});
+  const sorted=Object.entries(catT).sort((a,b)=>b[1]-a[1]);
+  document.getElementById('catBars').innerHTML=sorted.length?sorted.map(([cat,amt])=>{const pct=exp>0?Math.round(amt/exp*100):0;const c=getCat(cat,'expense');return`<div class="bar-row"><div class="bar-top"><span class="bar-name">${c.i} ${catLabel(c)}</span><span class="bar-amt">${fmt(amt)} · ${pct}%</span></div><div class="bar-track"><div class="bar-fill" style="width:${pct}%;background:${c.c}"></div></div></div>`;}).join(''):`<div class="empty">${t('noCat')}</div>`;
+  const now=viewDate,months=[];
+  for(let i=5;i>=0;i--){const d=new Date(now.getFullYear(),now.getMonth()-i,1);months.push({key:d.toISOString().substring(0,7),lbl:t('monthsS')[d.getMonth()]});}
+  const incD=months.map(m=>recs.filter(r=>r.date.startsWith(m.key)&&r.type==='income'&&r.cur===cur).reduce((s,r)=>s+r.amount,0));
+  const expD=months.map(m=>recs.filter(r=>r.date.startsWith(m.key)&&r.type==='expense'&&r.cur===cur).reduce((s,r)=>s+r.amount,0));
+  if(chartI){chartI.destroy();chartI=null;}
+  chartI=new Chart(document.getElementById('chart').getContext('2d'),{type:'bar',data:{labels:months.map(m=>m.lbl),datasets:[{label:t('sInc'),data:incD,backgroundColor:'rgba(29,158,117,0.65)',borderRadius:4},{label:t('sExp'),data:expD,backgroundColor:'rgba(226,75,74,0.65)',borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#a0a0c0',font:{size:11},boxWidth:10}}},scales:{y:{beginAtZero:true,ticks:{callback:v=>sym()+Math.round(v).toLocaleString(),font:{size:10},color:'#606080'},grid:{color:'rgba(255,255,255,0.05)'}},x:{ticks:{font:{size:11},color:'#a0a0c0'},grid:{display:false}}}}});
+}
+
+function setHTab(tp){htab=tp;['all','income','expense'].forEach(x=>document.getElementById('ht'+x.charAt(0).toUpperCase()+x.slice(1)).classList.toggle('active',x===tp));renderHist();}
+function renderHist(){
+  const mo=viewMo(),filtered=recs.filter(r=>r.date.startsWith(mo)&&(htab==='all'||r.type===htab));
+  const el=document.getElementById('histList');
+  if(!filtered.length){el.innerHTML=`<div class="empty">${t('noRec')}</div>`;return;}
+  const groups={};filtered.forEach(r=>{if(!groups[r.date])groups[r.date]=[];groups[r.date].push(r);});
+  el.innerHTML=Object.keys(groups).sort().reverse().map(date=>{
+    const dr=groups[date];
+    const dInc=dr.filter(r=>r.type==='income').reduce((s,r)=>s+r.amount,0);
+    const dExp=dr.filter(r=>r.type==='expense').reduce((s,r)=>s+r.amount,0);
+    const d=new Date(date+'T00:00:00');
+    const dtxt=dInc>0&&dExp>0?`+${fmt(dInc)} / -${fmt(dExp)}`:(dInc>0?`+${fmt(dInc)}`:`-${fmt(dExp)}`);
+    const dc=dInc>=dExp?'var(--income)':'var(--expense)';
+    const items=dr.sort((a,b)=>(b.time||'').localeCompare(a.time||'')).map(r=>{
+      const c=getCat(r.cat,r.type);const bg=r.type==='income'?'rgba(29,158,117,0.12)':'rgba(226,75,74,0.1)';
+      return`<div class="rec-item"><div class="rec-icon" style="background:${bg}">${c.i}</div><div class="rec-info"><div class="rec-name">${r.desc}</div><div class="rec-meta">${catLabel(c)}${r.note?' · '+r.note:''} · ${r.cur||cur}</div></div><div class="rec-r"><div class="rec-amt" style="color:${r.type==='income'?'var(--income)':'var(--expense)'}">${r.type==='income'?'+':'-'}${fmt(r.amount)}</div>${r.time?`<div class="rec-time">${r.time}</div>`:''}</div><button class="rec-del" onclick="delRec(${r.id})">✕</button></div>`;
+    }).join('');
+    return`<div><div class="day-hdr"><div style="font-size:12px;font-weight:600;color:var(--text2)">${d.getDate()} ${t('months')[d.getMonth()]} ${d.getFullYear()}</div><div style="font-size:12px;font-weight:600;color:${dc}">${dtxt}</div></div>${items}</div>`;
+  }).join('');
+}
+
+function renderPlan(){
+  updMo();si('planMonthLbl',t('months')[viewDate.getMonth()]+' '+viewDate.getFullYear());
+  si('lblDailyTitle',t('lblDailyTitle'));si('lblDailyInput',t('lblDailyInput')+' ('+sym()+')');
+  si('lgOk',t('lgOk'));si('lgWarn',t('lgWarn'));si('lgOver',t('lgOver'));si('lblPlanSum',t('lblPlanSum'));
+  document.getElementById('dowRow').innerHTML=t('dow').map(d=>`<div class="dow-lbl">${d}</div>`).join('');
+  renderPlanGrid();
+}
+function renderPlanGrid(){
+  const mo=viewMo(),dailyBudget=parseFloat(document.getElementById('dailyBudget').value)||0;
+  const daysInMonth=new Date(viewDate.getFullYear(),viewDate.getMonth()+1,0).getDate();
+  const firstDow=new Date(viewDate.getFullYear(),viewDate.getMonth(),1).getDay();
+  const todayStr=today();
+  const dayTotals={};
+  recs.filter(r=>r.date.startsWith(mo)&&r.type==='expense'&&r.cur===cur).forEach(r=>{dayTotals[r.date]=(dayTotals[r.date]||0)+r.amount;});
+  let cells='';
+  for(let i=0;i<firstDow;i++)cells+=`<div></div>`;
+  for(let d=1;d<=daysInMonth;d++){
+    const dateStr=`${mo}-${d.toString().padStart(2,'0')}`;
+    const spent=dayTotals[dateStr]||0;
+    const isToday=dateStr===todayStr,isPast=dateStr<todayStr;
+    let cls='plan-day',dotColor='var(--text3)',amtColor='var(--text3)';
+    if(isToday)cls+=' today';
+    if(dailyBudget>0&&(isPast||isToday)&&spent>0){
+      const pct=spent/dailyBudget*100;
+      if(pct<=70){cls+=' day-ok';dotColor='var(--income)';amtColor='var(--income)';}
+      else if(pct<=100){cls+=' day-warn';dotColor='var(--warn)';amtColor='var(--warn)';}
+      else{cls+=' day-over';dotColor='var(--expense)';amtColor='var(--expense)';}
+    }
+    cells+=`<div class="${cls}" onclick="showDayDetail('${dateStr}',${spent},${dailyBudget})"><div class="pd-num">${d}</div><div class="pd-dot" style="background:${spent>0?dotColor:'transparent'}"></div><div class="pd-amt" style="color:${amtColor}">${spent>0?sym()+Math.round(spent).toLocaleString():''}</div></div>`;
+  }
+  document.getElementById('planGrid').innerHTML=cells;
+  const totalSpent=Object.values(dayTotals).reduce((s,v)=>s+v,0);
+  const daysW=Object.keys(dayTotals).length;
+  const daysOver=dailyBudget>0?Object.entries(dayTotals).filter(([,v])=>v>dailyBudget).length:0;
+  const avg=daysW>0?totalSpent/daysW:0;
+  document.getElementById('planSummary').innerHTML=`
+    <div class="plan-sum-row"><span>${t('planTotal')}</span><span style="color:var(--expense);font-weight:600">${fmt(totalSpent)}</span></div>
+    <div class="plan-sum-row"><span>${t('planAvg')}</span><span>${fmt(avg)}</span></div>
+    ${dailyBudget>0?`<div class="plan-sum-row"><span>${t('planOver')}</span><span style="color:${daysOver>0?'var(--expense)':'var(--income)'}">${daysOver} ${t('days')}</span></div>`:''}
+    ${dailyBudget>0?`<div class="plan-sum-row"><span>${t('planRemain')}</span><span style="color:var(--income);font-weight:600">${fmt(dailyBudget*daysInMonth-totalSpent)}</span></div>`:''}`;
+}
+function showDayDetail(dateStr,spent,dailyBudget){
+  const d=new Date(dateStr+'T00:00:00'),dayRecs=recs.filter(r=>r.date===dateStr&&r.cur===cur);
+  let html=`<div class="plan-detail"><div style="font-size:13px;font-weight:600;margin-bottom:8px">${d.getDate()} ${t('months')[d.getMonth()]} ${d.getFullYear()}</div>`;
+  if(dailyBudget>0){const rem=dailyBudget-spent;const pct=spent/dailyBudget*100;const col=pct>100?'var(--expense)':pct>70?'var(--warn)':'var(--income)';html+=`<div style="font-size:12px;color:var(--text2);margin-bottom:8px">${t('dayBud')}: ${fmt(dailyBudget)} | ${t('daySpent')}: <span style="color:${col}">${fmt(spent)}</span> | ${rem>=0?t('dayRemain')+': <span style="color:var(--income)">'+fmt(rem)+'</span>':t('dayOver')+': <span style="color:var(--expense)">'+fmt(Math.abs(rem))+'</span>'}</div>`;}
+  html+=dayRecs.length?dayRecs.map(r=>{const c=getCat(r.cat,r.type);return`<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border);font-size:12px;color:var(--text)"><span>${c.i} ${r.desc}</span><span style="color:${r.type==='income'?'var(--income)':'var(--expense)'}">${r.type==='income'?'+':'-'}${fmt(r.amount)}</span></div>`;}).join(''):`<div style="font-size:12px;color:var(--text3)">${t('noRec')}</div>`;
+  document.getElementById('planDetail').innerHTML=html+'</div>';
+}
+
+function doCSV(){
+  if(!recs.length){toast(t('errNoData'),true);return;}
+  const rows=[['Date','Time','Type','Description','Category','Amount','Currency','Note']];
+  recs.forEach(r=>rows.push([r.date,r.time||'',r.type==='income'?'Income':'Expense',r.desc,r.cat,r.amount.toFixed(2),r.cur||'THB',r.note||'']));
+  const csv=rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'});
+  const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='finance.csv';a.click();URL.revokeObjectURL(url);
+  toast(t('toastCSV'));
+}
+async function sendSheets(){
+  const url=document.getElementById('shURL').value.trim();
+  if(!url){toast(t('errURL'),true);return;}if(!recs.length){toast(t('errNoData'),true);return;}
+  toast(t('toastSending'));
+  try{await fetch(url,{method:'POST',mode:'no-cors',body:JSON.stringify(recs.map(r=>({date:r.date,time:r.time||'',type:r.type==='income'?'Income':'Expense',desc:r.desc,cat:r.cat,amount:r.amount,cur:r.cur||'THB',note:r.note||''}))),headers:{'Content-Type':'application/json'}});toast(t('toastSent'));}
+  catch(e){toast(t('toastSentErr'),true);}
+}
+
+// Service Worker
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>{
+    navigator.serviceWorker.register('./sw.js').then(()=>console.log('SW OK')).catch(e=>console.warn('SW:',e));
+  });
+}
+
+// Boot
+loadData().then(()=>{
+  document.getElementById('curSel').value=cur;
+  applyLang();updMo();buildCatGrid();initForm();renderDash();
+});
+</script>
+</body>
+</html>
